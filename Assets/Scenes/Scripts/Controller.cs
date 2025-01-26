@@ -8,6 +8,7 @@ public class Controller : MonoBehaviour
 
     public float moveSpeed = 5f;
     public float jumpForce = 7f;
+    public float jumpCooldown = 0.5f;  // Cooldown time in seconds
 
     private Rigidbody2D rb;
     private bool isGrounded;
@@ -17,14 +18,14 @@ public class Controller : MonoBehaviour
     public LayerMask groundLayer;
     public float floatingForce = 2f;   // Force applied to make the player float
 
-
     AudioManager audioManager;
+
+    private float nextJumpTime = 0f;  // Tracks when the player can jump next
 
     private void Awake()
     {
         audioManager = GameObject.FindGameObjectWithTag("Audio").GetComponent<AudioManager>();
     }
-
 
     // Start is called before the first frame update
     void Start()
@@ -37,6 +38,8 @@ public class Controller : MonoBehaviour
     {
         Move();
         Jump();
+
+        rb.freezeRotation = true;
 
         // If the player is floating, reduce gravity
         if (isFloating)
@@ -57,9 +60,8 @@ public class Controller : MonoBehaviour
         {
             moveInput = -1f;
         }
-
         else if (Input.GetKey(KeyCode.D))
-        { 
+        {
             moveInput = 1f;
         }
 
@@ -71,12 +73,15 @@ public class Controller : MonoBehaviour
     {
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
 
-        if (isGrounded && Input.GetKeyDown(KeyCode.Space)) // Jump when space is pressed
+        // Jump only if grounded and the cooldown has passed
+        if (isGrounded && Time.time >= nextJumpTime && Input.GetKeyDown(KeyCode.Space))
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+            nextJumpTime = Time.time + jumpCooldown;  // Set the next available jump time
             audioManager.PlaySFX(audioManager.jumpSound);
         }
     }
+
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("FloatingBubble"))
