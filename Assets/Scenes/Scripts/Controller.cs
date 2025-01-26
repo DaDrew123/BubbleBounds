@@ -5,6 +5,11 @@ using UnityEngine;
 
 public class Controller : MonoBehaviour
 {
+    public Sprite idleSprite;
+    public Sprite jumpSprite;
+    public Sprite anticSprite;
+
+    private SpriteRenderer spriteRenderer;
 
     public float moveSpeed = 5f;
     public float jumpForce = 7f;
@@ -29,7 +34,8 @@ public class Controller : MonoBehaviour
 
     // Start is called before the first frame update
     void Start()
-    {
+    {     
+        spriteRenderer = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
     }
 
@@ -67,6 +73,17 @@ public class Controller : MonoBehaviour
 
         // Move the player left or right
         rb.velocity = new Vector2(moveInput * moveSpeed, rb.velocity.y);
+
+        // Jump Anim
+        if (!isGrounded){ 
+            spriteRenderer.sprite = jumpSprite;
+        }
+        else if(isGrounded){
+            spriteRenderer.sprite = idleSprite; 
+        }
+        else{
+            spriteRenderer.sprite = anticSprite;
+        }
     }
 
     void Jump()
@@ -76,6 +93,7 @@ public class Controller : MonoBehaviour
         // Jump only if grounded and the cooldown has passed
         if (isGrounded && Time.time >= nextJumpTime && Input.GetKeyDown(KeyCode.Space))
         {
+            
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
             nextJumpTime = Time.time + jumpCooldown;  // Set the next available jump time
             audioManager.PlaySFX(audioManager.jumpSound);
